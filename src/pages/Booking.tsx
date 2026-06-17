@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   MapPin,
   HandHelping,
+  Lock,
 } from 'lucide-react'
 import WorkflowTimeline from '@/components/WorkflowTimeline'
 
@@ -161,10 +162,14 @@ export default function Booking() {
             <select
               value={selectedResident}
               onChange={(e) => {
-                setSelectedResident(e.target.value)
-                const res = residents.find((r) => r.id === e.target.value)
+                const residentId = e.target.value
+                setSelectedResident(residentId)
+                const res = residents.find((r) => r.id === residentId)
                 if (res) {
                   setSelectedFamily(res.familyId)
+                  if (res.mobilityImpaired) {
+                    setBookingType('home')
+                  }
                 }
               }}
               className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400"
@@ -231,15 +236,26 @@ export default function Booking() {
               <h4 className="text-sm font-medium text-stone-600 mb-2">服务方式</h4>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => setBookingType('instore')}
+                  onClick={() => {
+                    if (selectedResidentData?.mobilityImpaired) {
+                      setMessage({ type: 'error', text: '行动不便居民只能安排上门服务' })
+                      setTimeout(() => setMessage(null), 3000)
+                      return
+                    }
+                    setBookingType('instore')
+                  }}
+                  disabled={selectedResidentData?.mobilityImpaired}
                   className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     bookingType === 'instore'
                       ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
+                      : selectedResidentData?.mobilityImpaired
+                      ? 'bg-stone-100 text-stone-400 cursor-not-allowed border border-stone-200'
                       : 'bg-stone-50 text-stone-600 border border-stone-200 hover:border-blue-300'
                   }`}
                 >
                   <Store size={14} />
                   到店
+                  {selectedResidentData?.mobilityImpaired && <Lock size={12} />}
                 </button>
                 <button
                   onClick={() => setBookingType('home')}
@@ -253,6 +269,12 @@ export default function Booking() {
                   上门
                 </button>
               </div>
+              {selectedResidentData?.mobilityImpaired && (
+                <div className="flex items-center gap-1.5 mt-2 text-[11px] text-orange-600 bg-orange-50 px-2 py-1.5 rounded-lg">
+                  <HandHelping size={12} />
+                  <span>行动不便居民已自动锁定上门服务</span>
+                </div>
+              )}
             </div>
 
             {bookingType === 'home' && (

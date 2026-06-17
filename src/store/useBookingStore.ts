@@ -225,6 +225,9 @@ export const useBookingStore = create<BookingState>()(
         if (!resident || !shift) return '居民或班次不存在'
         if (resident.isSuspended) return '该居民已被暂停预约，请先申请复约'
         if (shift.isLeave) return '该班次已请假，不可预约'
+        if (resident.mobilityImpaired && type === 'instore') {
+          return '行动不便居民只能安排上门服务'
+        }
 
         const count = state.getShiftAppointmentCount(shiftId)
         if (count >= shift.maxAppointments) return '该班次已满'
